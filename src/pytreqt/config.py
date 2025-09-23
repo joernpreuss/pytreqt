@@ -1,10 +1,14 @@
 """Configuration management for pytreqt."""
 
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
-import tomllib
+if sys.version_info >= (3, 11):
+    import tomllib as _toml_lib
+else:
+    import tomli as _toml_lib
 
 
 class PytreqtConfig:
@@ -60,7 +64,7 @@ class PytreqtConfig:
         if config_file and config_file.exists():
             try:
                 with open(config_file, "rb") as f:
-                    file_config = tomllib.load(f)
+                    file_config = _toml_lib.load(f)
 
                 # Extract pytreqt config from pyproject.toml or use entire file
                 # for pytreqt.toml
@@ -72,7 +76,7 @@ class PytreqtConfig:
                 # Merge with defaults
                 self._merge_config(pytreqt_config)
 
-            except (OSError, tomllib.TOMLDecodeError) as e:
+            except (OSError, _toml_lib.TOMLDecodeError) as e:
                 # Fall back to defaults if config file is unreadable
                 print(f"Warning: Could not read config file {config_file}: {e}")
 
