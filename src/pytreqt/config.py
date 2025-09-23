@@ -24,7 +24,7 @@ class PytreqtConfig:
         """Load configuration from file(s)."""
         # Set defaults first
         self._config = {
-            "requirements_file": "requirements.md",
+            "requirements_file": "spec/requirements.md",
             "requirement_patterns": [
                 r"FR-\d+\.?\d*",  # Functional Requirements
                 r"BR-\d+\.?\d*",  # Business Rules

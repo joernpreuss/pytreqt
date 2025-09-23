@@ -23,8 +23,8 @@ def extract_requirements_from_specs():
 
     # Extract requirements with descriptions using configured patterns
     for pattern in config.requirement_patterns:
-        # Pattern matches lines like "- **FR-1.1**: Users can create objects"
-        markdown_pattern = rf"-\s+\*\*({pattern})\*\*:\s+(.+)"
+        # Pattern matches lines like "**FR-1.1**: Users can create objects"
+        markdown_pattern = rf"\*\*({pattern})\*\*:\s+(.+)"
         matches = re.findall(markdown_pattern, content, re.MULTILINE | re.IGNORECASE)
 
         for req_id, description in matches:

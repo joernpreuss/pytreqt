@@ -52,17 +52,12 @@ class RequirementsCollector:
 requirements_collector = RequirementsCollector()
 
 
-def pytest_configure_node(node):
-    """Configure worker node - called on master for each worker."""
-    # Add custom attribute to track worker data
-    if not hasattr(node, "_worker_requirements"):
-        node._worker_requirements = {}
+# Remove pytest_configure_node - not a standard pytest hook
+# Worker node configuration handled through other mechanisms
 
 
-def pytest_testnodedown(node, error):
-    """Called when a worker finishes - collect data from worker."""
-    # This hook allows us to collect data from workers
-    pass
+# Remove pytest_testnodedown - not a standard pytest hook
+# Worker communication handled through other mechanisms
 
 
 def pytest_runtest_logreport(report):

@@ -56,9 +56,9 @@ class RequirementsParser:
         # This pattern looks for requirement IDs in common markdown formats
         found_requirements = set()
         for pattern in self.config.requirement_patterns:
-            # Look for requirements in headers (## FR-1.1) and bullet points
-            # (- **FR-1.1**)
-            combined_pattern = rf"(?:^|\s|-\s\*\*)({pattern})"
+            # Look for requirements in headers (## FR-1.1), bullet points
+            # (- **FR-1.1**), and bold format (**FR-1.1**)
+            combined_pattern = rf"(?:^|\s|-\s\*\*|\*\*)({pattern})"
             matches = re.findall(
                 combined_pattern, content, re.MULTILINE | re.IGNORECASE
             )
