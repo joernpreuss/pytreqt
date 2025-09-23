@@ -34,7 +34,7 @@ class RequirementsCollector:
 
     def collect_test_requirements(self, item: pytest.Item) -> None:
         """Collect requirements from a test item's docstring."""
-        if item.function.__doc__:
+        if hasattr(item, 'function') and item.function.__doc__:
             requirements = self.parser.extract_requirements(item.function.__doc__)
             if requirements:
                 # Validate requirements exist in requirements file
