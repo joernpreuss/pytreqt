@@ -13,13 +13,16 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        pytest-version: ["6.0", "7.0", "8.0"]
+        pytest-version: ["8.0", "8.3"]
         exclude:
           # Reduce matrix size for efficiency
           - os: windows-latest
             python-version: "3.10"
           - os: macos-latest
             python-version: "3.10"
+          # Exclude Python 3.13 with pytest 8.0 due to AST compatibility issues
+          - python-version: "3.13"
+            pytest-version: "8.0"
 
     steps:
     - uses: actions/checkout@v4
