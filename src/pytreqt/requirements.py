@@ -25,7 +25,7 @@ class RequirementsParser:
         if not docstring:
             return set()
 
-        requirements = set()
+        requirements: set[str] = set()
         for pattern in self.config.requirement_patterns:
             matches = re.findall(pattern, docstring, re.IGNORECASE)
             requirements.update(req.upper() for req in matches)
@@ -54,7 +54,7 @@ class RequirementsParser:
 
         # Extract requirement IDs from markdown headers and bullet points
         # This pattern looks for requirement IDs in common markdown formats
-        found_requirements = set()
+        found_requirements: set[str] = set()
         for pattern in self.config.requirement_patterns:
             # Look for requirements in headers (## FR-1.1), bullet points
             # (- **FR-1.1**), and bold format (**FR-1.1**)
