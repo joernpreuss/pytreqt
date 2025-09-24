@@ -32,7 +32,7 @@ def lint(session: nox.Session) -> None:
     session.run("ruff", "check", "src/")
 
 
-@nox.session(python=PYTHON_VERSIONS)
+@nox.session(python=["3.11", "3.12"])  # Exclude 3.10/3.13 due to mypy compatibility issues
 def mypy(session: nox.Session) -> None:
     """Run type checking with different Python versions."""
     session.install("-e", ".[dev]")

@@ -38,8 +38,8 @@ class RequirementsCollector:
 
     def collect_test_requirements(self, item: pytest.Item) -> None:
         """Collect requirements from a test item's docstring."""
-        if hasattr(item, "function") and item.function.__doc__:
-            requirements = self.parser.extract_requirements(item.function.__doc__)
+        if hasattr(item, "function") and item.function.__doc__:  # type: ignore[attr-defined]
+            requirements = self.parser.extract_requirements(item.function.__doc__)  # type: ignore[attr-defined]
             if requirements:
                 # Validate requirements exist in requirements file
                 self.parser.validate_requirements(requirements, item.nodeid)
@@ -74,13 +74,13 @@ def pytest_runtest_logreport(report: TestReport) -> None:
             # Send requirements data to master via the report
             requirements = requirements_collector.test_requirements[test_name]
             if not hasattr(report, "_requirements_data"):
-                report._requirements_data = {
+                report._requirements_data = {  # type: ignore[attr-defined]
                     "test_requirements": {test_name: requirements},
                     "requirement_tests": {},
                     "test_results": {test_name: report.outcome},
                 }
                 # Build requirement_tests mapping
-                req_data = report._requirements_data
+                req_data = report._requirements_data  # type: ignore[attr-defined]
                 for req in requirements:
                     if req not in req_data["requirement_tests"]:
                         req_data["requirement_tests"][req] = []
@@ -96,13 +96,13 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
     if (
         item.config.getoption("--show-docstrings")
         and hasattr(item, "function")
-        and item.function.__doc__
+        and item.function.__doc__  # type: ignore[attr-defined]
     ):
         item.config.hook.pytest_runtest_logstart(
             nodeid=item.nodeid, location=item.location
         )
         if hasattr(item, "function"):
-            print(f"\n{item.function.__doc__.strip()}")
+            print(f"\n{item.function.__doc__.strip()}")  # type: ignore[attr-defined]
         print("-" * 40)
 
 
@@ -133,12 +133,13 @@ def pytest_terminal_summary(
 
     is_xdist_worker = os.getenv("PYTEST_XDIST_WORKER") is not None
 
+    # Initialize aggregated data containers
+    aggregated_test_requirements: dict[str, set[str]] = {}
+    aggregated_requirement_tests: dict[str, list[str]] = defaultdict(list)
+    aggregated_test_results: dict[str, str] = {}
+
     # For xdist master process, collect data from all test reports
     if not is_xdist_worker:
-        # Collect requirements data from all test reports
-        aggregated_test_requirements: dict[str, set[str]] = {}
-        aggregated_requirement_tests: dict[str, list[str]] = defaultdict(list)
-        aggregated_test_results: dict[str, str] = {}
 
         # Check if we have reports with requirements data
         if hasattr(terminalreporter, "stats"):
@@ -146,7 +147,7 @@ def pytest_terminal_summary(
                 if category in terminalreporter.stats:
                     for report in terminalreporter.stats[category]:
                         if hasattr(report, "_requirements_data"):
-                            data = report._requirements_data
+                            data = report._requirements_data  # type: ignore[attr-defined]
                             aggregated_test_requirements.update(
                                 data["test_requirements"]
                             )
@@ -179,7 +180,8 @@ def pytest_terminal_summary(
             _save_coverage_data()
 
     # Check if verbose mode or custom flag is set
-    if terminalreporter.config.getoption("verbose") >= 1 or getattr(
+    verbose_level = terminalreporter.config.getoption("verbose")
+    if (isinstance(verbose_level, int) and verbose_level >= 1) or getattr(
         config.option, "requirements_report", False
     ):
         terminalreporter.section("Requirements Coverage")

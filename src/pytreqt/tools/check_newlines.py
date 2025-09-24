@@ -57,6 +57,12 @@ def main(fix: bool, files: tuple[Path, ...]) -> None:
                 if any(p in f.parts for p in exclude):
                     continue
 
+                # Skip specific files that are auto-generated
+                if f.name == "SOURCES.txt" and any(
+                    "egg-info" in str(part) for part in f.parts
+                ):
+                    continue
+
                 # Skip non-files or empty files
                 if not f.is_file() or f.stat().st_size == 0:
                     continue
