@@ -13,9 +13,13 @@ import socket
 import subprocess
 import sys
 from collections import defaultdict
+from collections.abc import Callable, Generator
 from datetime import datetime
+from typing import Any
 
 import pytest
+from _pytest.reports import TestReport
+from _pytest.terminal import TerminalReporter
 from rich.console import Console
 
 from .config import get_config
@@ -25,7 +29,7 @@ from .requirements import RequirementsParser
 class RequirementsCollector:
     """Collects requirements coverage from test docstrings."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.test_requirements: dict[str, set[str]] = {}
         self.requirement_tests: dict[str, list[str]] = defaultdict(list)
         self.test_results: dict[str, str] = {}  # Track test outcomes
@@ -34,7 +38,7 @@ class RequirementsCollector:
 
     def collect_test_requirements(self, item: pytest.Item) -> None:
         """Collect requirements from a test item's docstring."""
-        if hasattr(item, 'function') and item.function.__doc__:
+        if hasattr(item, "function") and item.function.__doc__:
             requirements = self.parser.extract_requirements(item.function.__doc__)
             if requirements:
                 # Validate requirements exist in requirements file
@@ -60,7 +64,7 @@ requirements_collector = RequirementsCollector()
 # Worker communication handled through other mechanisms
 
 
-def pytest_runtest_logreport(report):
+def pytest_runtest_logreport(report: TestReport) -> None:
     """Called for each test report - runs on workers, sends data to master."""
     # Only handle the main test call
     if report.when == "call" and hasattr(report, "nodeid"):
@@ -76,33 +80,39 @@ def pytest_runtest_logreport(report):
                     "test_results": {test_name: report.outcome},
                 }
                 # Build requirement_tests mapping
+                req_data = report._requirements_data
                 for req in requirements:
-                    if req not in report._requirements_data["requirement_tests"]:
-                        report._requirements_data["requirement_tests"][req] = []
-                    report._requirements_data["requirement_tests"][req].append(
-                        test_name
-                    )
+                    if req not in req_data["requirement_tests"]:
+                        req_data["requirement_tests"][req] = []
+                    req_data["requirement_tests"][req].append(test_name)
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_runtest_setup(item):
+def pytest_runtest_setup(item: pytest.Item) -> None:
     """Hook called before each test runs - collect requirements."""
     requirements_collector.collect_test_requirements(item)
 
     # Show docstring if flag is set
-    if item.config.getoption("--show-docstrings") and item.function.__doc__:
+    if (
+        item.config.getoption("--show-docstrings")
+        and hasattr(item, "function")
+        and item.function.__doc__
+    ):
         item.config.hook.pytest_runtest_logstart(
             nodeid=item.nodeid, location=item.location
         )
-        print(f"\n{item.function.__doc__.strip()}")
+        if hasattr(item, "function"):
+            print(f"\n{item.function.__doc__.strip()}")
         print("-" * 40)
 
 
 @pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
+def pytest_runtest_makereport(
+    item: pytest.Item, call: pytest.CallInfo[None]
+) -> Generator[None, None, None]:
     """Hook called after each test runs - capture results."""
     outcome = yield
-    report = outcome.get_result()
+    report = outcome.get_result()  # type: ignore[attr-defined]
 
     if report.when == "call":  # Only capture the main test call, not setup/teardown
         requirements_collector.test_results[item.nodeid] = report.outcome
@@ -112,7 +122,9 @@ def pytest_runtest_makereport(item, call):
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
+def pytest_terminal_summary(
+    terminalreporter: TerminalReporter, exitstatus: int, config: pytest.Config
+) -> None:
     """Hook called at end of test session - generate requirements report."""
     # Check if we should display cached coverage instead of live data
     if getattr(config.option, "show_last_coverage", False):
@@ -226,7 +238,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         terminalreporter.write_line(f"  Requirements covered: {total_requirements}")
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add command line option for requirements reporting."""
     parser.addoption(
         "--requirements-report",
@@ -255,7 +267,9 @@ def pytest_addoption(parser):
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
     """Modify collected items based on requirements flags."""
     # Always collect requirements for all items during collection phase
     # This ensures workers have the requirements data
@@ -277,7 +291,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 # Custom marker for requirements
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     """Register custom markers."""
     config.addinivalue_line(
         "markers",
@@ -285,7 +299,7 @@ def pytest_configure(config):
     )
 
 
-def requirements(*reqs: str):
+def requirements(*reqs: str) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to explicitly mark tests with requirements.
 
     Usage:
@@ -294,9 +308,9 @@ def requirements(*reqs: str):
             pass
     """
 
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         # Store requirements in function metadata
-        func._requirements = {req.upper() for req in reqs}
+        setattr(func, "_requirements", {req.upper() for req in reqs})
 
         # Add to docstring if not already present
         if func.__doc__:
@@ -318,7 +332,7 @@ def requirements(*reqs: str):
     return decorator
 
 
-def _save_coverage_data():
+def _save_coverage_data() -> None:
     """Save current requirements coverage data to cache file (single worker)."""
     config = get_config()
     cache_dir = config.cache_dir
@@ -414,14 +428,17 @@ def _save_coverage_data():
     }
 
     # Store requirements with their tests and results
+    requirements_dict = coverage_data["requirements"]
+    assert isinstance(requirements_dict, dict)
     for req in sorted(all_requirements):
         tests = requirements_collector.requirement_tests[req]
-        coverage_data["requirements"][req] = []  # type: ignore[assignment,index]
+        requirements_dict[req] = []
 
         for test in tests:
             short_name = test.split("::")[-1]
             result = requirements_collector.test_results.get(test, "unknown")
-            coverage_data["requirements"][req].append(  # type: ignore[attr-defined,index]
+            req_data: list[dict[str, str]] = requirements_dict[req]
+            req_data.append(
                 {"test_name": short_name, "full_name": test, "result": result}
             )
 
@@ -431,7 +448,7 @@ def _save_coverage_data():
         json.dump(coverage_data, f, indent=2)
 
 
-def _display_cached_coverage(terminalreporter):
+def _display_cached_coverage(terminalreporter: TerminalReporter) -> None:
     """Display requirements coverage from cached data."""
     config = get_config()
     cache_file = config.cache_dir / "requirements_coverage.json"

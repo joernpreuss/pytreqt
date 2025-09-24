@@ -10,7 +10,7 @@ from rich.table import Table
 from ..config import get_config
 
 
-def show_stats(format="text"):
+def show_stats(format: str = "text") -> None:
     """Show detailed requirements statistics."""
     config = get_config()
 

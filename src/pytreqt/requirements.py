@@ -8,7 +8,7 @@ from .config import get_config
 class RequirementsParser:
     """Handles parsing and validation of requirements from files and docstrings."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the requirements parser."""
         self._valid_requirements: set[str] | None = None
         self.config = get_config()

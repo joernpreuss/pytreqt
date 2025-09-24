@@ -111,4 +111,4 @@ This package is in active development. Features and API may change.
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License. See LICENSE file for details.

@@ -10,21 +10,23 @@ import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 from ..config import get_config
+from .common import validate_requirements_file_exists
 
 
 class RequirementChangeDetector:
     """Detects changes in requirements and identifies affected tests."""
 
-    def __init__(self, cache_file=None):
+    def __init__(self, cache_file: Path | str | None = None) -> None:
         self.config = get_config()
         if cache_file is None:
             cache_file = self.config.cache_dir / "req_cache.json"
         self.cache_file = Path(cache_file)
         self.requirements_file = self.config.requirements_file
 
-    def get_requirements_hash(self):
+    def get_requirements_hash(self) -> str | None:
         """Calculate hash of requirements file content."""
         if not self.requirements_file.exists():
             return None
@@ -32,7 +34,7 @@ class RequirementChangeDetector:
         content = self.requirements_file.read_text(encoding="utf-8")
         return hashlib.sha256(content.encode()).hexdigest()
 
-    def extract_requirements(self):
+    def extract_requirements(self) -> dict[str, str]:
         """Extract requirements with their full text from requirements file."""
         if not self.requirements_file.exists():
             return {}
@@ -52,7 +54,7 @@ class RequirementChangeDetector:
 
         return requirements
 
-    def get_requirement_hashes(self, requirements):
+    def get_requirement_hashes(self, requirements: dict[str, str]) -> dict[str, str]:
         """Calculate individual hashes for each requirement."""
         req_hashes = {}
         for req_id, description in requirements.items():
@@ -60,7 +62,7 @@ class RequirementChangeDetector:
             req_hashes[req_id] = hashlib.sha256(combined.encode()).hexdigest()
         return req_hashes
 
-    def load_cache(self):
+    def load_cache(self) -> dict[str, Any]:
         """Load the previous requirements cache."""
         if not self.cache_file.exists():
             return {}
@@ -71,7 +73,7 @@ class RequirementChangeDetector:
         except (OSError, json.JSONDecodeError):
             return {}
 
-    def save_cache(self, data):
+    def save_cache(self, data: dict[str, Any]) -> None:
         """Save the current requirements cache."""
         try:
             # Ensure cache directory exists
@@ -81,7 +83,7 @@ class RequirementChangeDetector:
         except OSError as e:
             print(f"Warning: Could not save cache: {e}")
 
-    def get_test_coverage_mapping(self):
+    def get_test_coverage_mapping(self) -> dict[str, list[str]]:
         """Get mapping of requirements to tests, only including passing tests."""
         try:
             # Determine database type for test run
@@ -153,7 +155,7 @@ class RequirementChangeDetector:
             print(f"Warning: Could not get test coverage: {e}")
             return {}
 
-    def detect_changes(self):
+    def detect_changes(self) -> dict[str, Any]:
         """Detect changes in requirements and identify affected tests."""
         # Get current requirements
         current_requirements = self.extract_requirements()
@@ -166,7 +168,7 @@ class RequirementChangeDetector:
         previous_file_hash = cache.get("file_hash")
 
         # Determine what changed
-        changes = {
+        changes: dict[str, Any] = {
             "file_changed": current_file_hash != previous_file_hash,
             "added_requirements": [],
             "modified_requirements": [],
@@ -215,7 +217,7 @@ class RequirementChangeDetector:
 
         return changes
 
-    def print_change_report(self, changes):
+    def print_change_report(self, changes: dict[str, Any]) -> None:
         """Print a human-readable change report."""
         if not changes["file_changed"]:
             print("✅ No changes detected in requirements")
@@ -258,14 +260,9 @@ class RequirementChangeDetector:
         )
 
 
-def main():
+def main() -> None:
     """Main function to detect and report requirement changes."""
-    config = get_config()
-
-    if not config.requirements_file.exists():
-        print(f"ERROR: Requirements file not found: {config.requirements_file}")
-        print("Please check your pytreqt configuration.")
-        sys.exit(1)
+    validate_requirements_file_exists()
 
     detector = RequirementChangeDetector()
     changes = detector.detect_changes()

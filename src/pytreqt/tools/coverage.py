@@ -7,9 +7,10 @@ import re
 import sys
 
 from ..config import get_config
+from .common import validate_requirements_file_exists
 
 
-def extract_requirements_from_specs():
+def extract_requirements_from_specs() -> dict[str, str]:
     """Extract all defined requirements from requirements file."""
     config = get_config()
     requirements_file = config.requirements_file
@@ -33,7 +34,7 @@ def extract_requirements_from_specs():
     return requirements
 
 
-def _get_test_coverage():
+def _get_test_coverage() -> dict[str, list[str]]:
     """Get requirements coverage data from change detector."""
     try:
         from .changes import RequirementChangeDetector
@@ -45,7 +46,7 @@ def _get_test_coverage():
         return {}
 
 
-def _get_previous_coverage():
+def _get_previous_coverage() -> dict[str, str | int | float] | None:
     """Get previous coverage data from existing report."""
     config = get_config()
     coverage_file = config.reports_output_dir / config.coverage_filename
@@ -83,21 +84,26 @@ def _get_previous_coverage():
         return None
 
 
-def _coverage_changed(previous, current):
+def _coverage_changed(
+    previous: dict[str, str | int | float] | None, current: dict[str, str | int | float]
+) -> bool:
     """Check if coverage data has meaningfully changed."""
     if not previous:
         return True
 
     # Check if key metrics changed
+    prev_total = previous.get("total_requirements", 0)
+    prev_tested = previous.get("tested_requirements", 0)
+    prev_pct = previous.get("coverage_percentage", 0)
+
     return (
-        previous.get("total_requirements") != current["total_requirements"]
-        or previous.get("tested_requirements") != current["tested_requirements"]
-        or abs(previous.get("coverage_percentage", 0) - current["coverage_percentage"])
-        > 0.1
+        prev_total != current["total_requirements"]
+        or prev_tested != current["tested_requirements"]
+        or abs(float(prev_pct) - float(current["coverage_percentage"])) > 0.1
     )
 
 
-def _generate_coverage_matrix():
+def _generate_coverage_matrix() -> str | None:
     """Generate the complete coverage matrix."""
     get_config()
 
@@ -109,7 +115,7 @@ def _generate_coverage_matrix():
 
     # Get previous coverage to check if it changed
     previous_coverage = _get_previous_coverage()
-    current_coverage_data = {
+    current_coverage_data: dict[str, str | int | float] = {
         "total_requirements": len(all_requirements),
         "tested_requirements": len(test_coverage),
         "coverage_percentage": (
@@ -129,7 +135,7 @@ def _generate_coverage_matrix():
 
     if not all_requirements:
         print("No requirements found!")
-        return
+        return None
 
     # Generate the coverage report
     report_lines = [
@@ -221,15 +227,10 @@ def _generate_coverage_matrix():
     return "\n".join(report_lines) + "\n"
 
 
-def main():
+def main() -> None:
     """Main function to generate and write the coverage report."""
     config = get_config()
-
-    # Check if requirements file exists
-    if not config.requirements_file.exists():
-        print(f"ERROR: Requirements file not found: {config.requirements_file}")
-        print("Please check your pytreqt configuration.")
-        sys.exit(1)
+    validate_requirements_file_exists()
 
     # Generate the report
     report_content = _generate_coverage_matrix()

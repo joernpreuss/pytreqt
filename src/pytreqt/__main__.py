@@ -1,6 +1,7 @@
 """CLI entry point for pytreqt."""
 
 import click
+from click.core import Context
 
 from .plugin import show_requirements_coverage_rich
 
@@ -8,20 +9,20 @@ from .plugin import show_requirements_coverage_rich
 class OrderedGroup(click.Group):
     """Click group that preserves command order."""
 
-    def list_commands(self, ctx):
+    def list_commands(self, ctx: Context) -> list[str]:
         return list(self.commands.keys())
 
 
 @click.group(cls=OrderedGroup)
 @click.help_option("-h", "--help")
-def cli():
+def cli() -> None:
     """pytreqt - pytest requirements tracking"""
     pass
 
 
 @cli.command()
 @click.help_option("-h", "--help")
-def validate():
+def validate() -> None:
     """Validate requirements file format"""
     from .requirements import RequirementsParser
 
@@ -39,7 +40,7 @@ def validate():
 
 @cli.command()
 @click.help_option("-h", "--help")
-def config():
+def config() -> None:
     """Show current configuration"""
     from .config import get_config
 
@@ -55,7 +56,7 @@ def config():
 
 @cli.command()
 @click.help_option("-h", "--help")
-def coverage():
+def coverage() -> None:
     """Generate TEST_COVERAGE.md report"""
     from .tools.coverage import main as coverage_main
 
@@ -64,7 +65,7 @@ def coverage():
 
 @cli.command("show")
 @click.help_option("-h", "--help")
-def show():
+def show() -> None:
     """Show requirements coverage from last test run"""
     show_requirements_coverage_rich()
 
@@ -77,7 +78,7 @@ def show():
     help="Output format",
 )
 @click.help_option("-h", "--help")
-def stats(format):
+def stats(format: str) -> None:
     """Show detailed requirements statistics"""
     from .tools.stats import show_stats
 
@@ -86,7 +87,7 @@ def stats(format):
 
 @cli.command()
 @click.help_option("-h", "--help")
-def changes():
+def changes() -> None:
     """Check for requirement changes"""
     from .tools.changes import main as changes_main
 
@@ -95,14 +96,14 @@ def changes():
 
 @cli.command()
 @click.help_option("-h", "--help")
-def update():
+def update() -> None:
     """Update all traceability artifacts"""
     from .tools.update import main as update_main
 
     update_main()
 
 
-def main():
+def main() -> None:
     """Main CLI entry point for pytreqt."""
     cli()
 

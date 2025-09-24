@@ -4,7 +4,7 @@ Requires: FR-1.1, FR-1.2, FR-2.1, FR-2.2, FR-3.1, FR-4.1, BR-1.1
 """
 
 
-def test_requirement_extraction_single():
+def test_requirement_extraction_single() -> None:
     """Test extraction of single requirement ID from docstring.
 
     Requires: FR-1.1
@@ -13,7 +13,7 @@ def test_requirement_extraction_single():
     assert True  # Placeholder for actual implementation
 
 
-def test_requirement_extraction_multiple():
+def test_requirement_extraction_multiple() -> None:
     """Test extraction of multiple requirement IDs from docstring.
 
     Requires: FR-1.2, FR-2.1
@@ -22,7 +22,7 @@ def test_requirement_extraction_multiple():
     assert True  # Placeholder for actual implementation
 
 
-def test_requirement_validation_valid():
+def test_requirement_validation_valid() -> None:
     """Test validation passes for valid requirement IDs.
 
     Requires: FR-2.1, BR-1.1
@@ -31,7 +31,7 @@ def test_requirement_validation_valid():
     assert True  # Placeholder for actual implementation
 
 
-def test_requirement_validation_invalid():
+def test_requirement_validation_invalid() -> None:
     """Test validation fails for invalid requirement IDs.
 
     Requires: FR-2.2, BR-1.1
@@ -40,7 +40,7 @@ def test_requirement_validation_invalid():
     assert True  # Placeholder for actual implementation
 
 
-def test_coverage_report_generation():
+def test_coverage_report_generation() -> None:
     """Test generation of coverage reports.
 
     Requires: FR-3.1, FR-3.4
@@ -49,7 +49,7 @@ def test_coverage_report_generation():
     assert True  # Placeholder for actual implementation
 
 
-def test_pytest_plugin_integration():
+def test_pytest_plugin_integration() -> None:
     """Test integration with pytest as a plugin.
 
     Requires: FR-4.1, BR-2.1
@@ -58,7 +58,7 @@ def test_pytest_plugin_integration():
     assert True  # Placeholder for actual implementation
 
 
-def test_parallel_execution_compatibility():
+def test_parallel_execution_compatibility() -> None:
     """Test compatibility with parallel test execution.
 
     Requires: FR-4.3, BR-2.3
@@ -67,7 +67,7 @@ def test_parallel_execution_compatibility():
     assert True  # Placeholder for actual implementation
 
 
-def test_malformed_requirement_handling():
+def test_malformed_requirement_handling() -> None:
     """Test handling of malformed requirement references.
 
     Requires: FR-1.3, BR-3.3
@@ -76,7 +76,7 @@ def test_malformed_requirement_handling():
     assert True  # Placeholder for actual implementation
 
 
-def test_self_contained_operation():
+def test_self_contained_operation() -> None:
     """Test that pytreqt operates with minimal dependencies.
 
     Requires: BR-3.1
@@ -85,7 +85,7 @@ def test_self_contained_operation():
     assert True  # Placeholder for actual implementation
 
 
-def test_traceability_matrix_generation():
+def test_traceability_matrix_generation() -> None:
     """Test generation of requirement-to-test traceability matrix.
 
     Requires: FR-3.4, BR-1.3
