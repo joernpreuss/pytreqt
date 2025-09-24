@@ -310,7 +310,7 @@ def requirements(*reqs: str) -> Callable[[Callable[..., Any]], Callable[..., Any
 
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         # Store requirements in function metadata
-        setattr(func, "_requirements", {req.upper() for req in reqs})
+        func._requirements = {req.upper() for req in reqs}  # type: ignore[attr-defined]
 
         # Add to docstring if not already present
         if func.__doc__:
