@@ -140,7 +140,6 @@ def pytest_terminal_summary(
 
     # For xdist master process, collect data from all test reports
     if not is_xdist_worker:
-
         # Check if we have reports with requirements data
         if hasattr(terminalreporter, "stats"):
             for category in ["passed", "failed", "skipped"]:
